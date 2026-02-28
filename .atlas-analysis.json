@@ -1,0 +1,57 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "Bugbot Loop",
+  "projectDescription": "Claude Code plugin that resolves Cursor Bugbot PR comments in a loop until all are addressed",
+  "theme": "aspen",
+  "primaryColor": "#7C3AED",
+  "lightColor": "#A78BFA",
+  "darkColor": "#5B21B6",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "pages": [
+          "introduction",
+          "installation",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Usage Guide",
+        "pages": [
+          "usage/command-reference",
+          "usage/modes",
+          "usage/flags"
+        ]
+      },
+      {
+        "group": "Advanced",
+        "pages": [
+          "advanced/how-it-works",
+          "advanced/prerequisites",
+          "advanced/troubleshooting"
+        ]
+      },
+      {
+        "group": "Additional",
+        "pages": [
+          "uninstall"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Automated loop to resolve all Cursor Bugbot PR comments",
+    "Auto-commit mode with automatic push and loop continuation",
+    "Manual mode for reviewing changes before committing",
+    "Configurable max iterations to prevent infinite loops",
+    "GraphQL integration with GitHub to fetch and resolve review threads",
+    "Intelligent comment processing with validation and dismissal"
+  ],
+  "publicApiSurface": [
+    "/bugbot-loop:run",
+    "/bugbot-loop:run --max-iterations=N",
+    "/bugbot-loop:run --auto",
+    "/bugbot-loop:run --manual"
+  ]
+}
