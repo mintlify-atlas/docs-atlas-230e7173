@@ -1,80 +1,127 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get started with Bugbot Loop in minutes
 ---
 
-## Get started in three steps
+This guide walks you through using Bugbot Loop to resolve Cursor Bugbot comments on your first PR.
 
-Get your documentation site running locally and make your first customization.
+## Basic usage
 
-### Step 1: Set up your local environment
+<Steps>
+  <Step title="Navigate to your PR branch">
+    Make sure you're on a branch with an open pull request that has Bugbot comments. You can check your current branch and PR status with:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    ```bash
+    git branch --show-current
+    gh pr view
+    ```
+  </Step>
 
-### Step 2: Deploy your changes
+  <Step title="Run Bugbot Loop">
+    Execute the basic command in Claude Code:
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    ```bash
+    /bugbot-loop:run
+    ```
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    The plugin will prompt you to choose between auto-commit mode and manual mode.
+  </Step>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+  <Step title="Choose your mode">
+    **Auto-commit mode**: The plugin will commit, push, wait for Bugbot to run again, and loop automatically until all comments are resolved.
 
-### Step 3: Go live
+    **Manual mode**: The plugin will fix all current comments, then stop for you to review the changes before committing.
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+    <Tip>
+      For your first time, try manual mode to see what changes Bugbot Loop makes before committing them.
+    </Tip>
+  </Step>
+
+  <Step title="Review the results">
+    Bugbot Loop will:
+    - Fetch all unresolved Bugbot comments using the GitHub API
+    - Read the context around each comment
+    - Fix valid issues or dismiss invalid reports
+    - In auto-commit mode: commit, push, and mark comments as resolved
+    - In manual mode: report the changes for your review
+  </Step>
+</Steps>
+
+## Advanced usage
+
+### Skip the mode prompt
+
+If you already know which mode you want, skip the prompt:
+
+```bash
+# Run in auto-commit mode without prompting
+/bugbot-loop:run --auto
+
+# Run in manual mode without prompting
+/bugbot-loop:run --manual
+```
+
+### Set maximum iterations
+
+Control how many times the loop runs before stopping (default is 10):
+
+```bash
+/bugbot-loop:run --max-iterations=5
+```
+
+### Combine flags
+
+You can combine multiple flags:
+
+```bash
+/bugbot-loop:run --auto --max-iterations=3
+```
+
+## Understanding the modes
+
+### Auto-commit mode
+
+In auto-commit mode, Bugbot Loop:
+1. Waits for Bugbot CI to complete (up to 25 minutes)
+2. Fetches unresolved comments
+3. Fixes all valid issues
+4. Commits and pushes changes
+5. Resolves the comment threads on GitHub
+6. Loops back to step 1 until all comments are resolved or max iterations reached
+
+<Note>
+  Auto-commit mode requires git commit and push permissions enabled in Claude Code.
+</Note>
+
+### Manual mode
+
+In manual mode, Bugbot Loop:
+1. Fetches all current unresolved comments
+2. Fixes all valid issues
+3. Reports the changes to you
+4. Stops and waits for you to review, commit, and push
+5. You can run the command again after Bugbot runs to process the next batch
+
+## What happens next
+
+After Bugbot Loop processes comments:
+
+- **Fixed issues** are applied to your code with proper context
+- **Dismissed issues** are logged with explanations of why they were invalid
+- In auto-commit mode, resolved threads are automatically marked as resolved on GitHub
+- The loop continues until Bugbot is satisfied or the iteration limit is reached
+
+<Tip>
+  If Bugbot Loop introduces new issues while fixing others, the next Bugbot run will catch them, and the loop will continue fixing until everything is resolved.
+</Tip>
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Command Reference" icon="terminal" href="/command-reference">
+    View all available commands and flags
+  </Card>
+  <Card title="Installation" icon="download" href="/installation">
+    Review installation and prerequisites
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

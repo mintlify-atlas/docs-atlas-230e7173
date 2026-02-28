@@ -1,0 +1,57 @@
+---
+title: Introduction
+description: Automate resolution of Cursor Bugbot PR comments in Claude Code
+---
+
+## What is Bugbot Loop?
+
+Bugbot Loop is a Claude Code plugin that automatically resolves Cursor Bugbot PR comments in a loop until all issues are addressed. Instead of manually fixing each Bugbot comment one by one, Bugbot Loop processes all unresolved comments, applies fixes, and repeats the cycle until your PR is clean.
+
+The plugin uses the GitHub CLI with GraphQL queries to fetch unresolved Bugbot comments, analyze them, and either fix valid issues or dismiss invalid reports. It supports both automated and manual workflows to fit your development process.
+
+<CardGroup cols={3}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install the Bugbot Loop plugin in Claude Code
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get started with Bugbot Loop in minutes
+  </Card>
+  <Card title="Command Reference" icon="terminal" href="/command-reference">
+    View all available commands and options
+  </Card>
+</CardGroup>
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="Automated loop processing" icon="rotate">
+    Continuously processes Bugbot comments until all are resolved or max iterations reached
+  </Card>
+  <Card title="Two operation modes" icon="toggle-on">
+    Auto-commit mode for hands-free operation, or manual mode for review before committing
+  </Card>
+  <Card title="Smart comment analysis" icon="brain">
+    Reads file context and analyzes each Bugbot suggestion to determine if it's valid
+  </Card>
+  <Card title="Automatic thread resolution" icon="check">
+    Marks comments as resolved after successful fixes in auto-commit mode
+  </Card>
+  <Card title="Configurable iterations" icon="sliders">
+    Set maximum loop iterations to prevent infinite loops
+  </Card>
+  <Card title="GitHub integration" icon="github">
+    Leverages GitHub CLI and GraphQL API for seamless PR comment management
+  </Card>
+</CardGroup>
+
+## How it works
+
+Bugbot Loop uses the GitHub CLI (`gh`) with predefined GraphQL queries to fetch unresolved comments left by Cursor Bugbot on your PR. Once it identifies unresolved comments, it:
+
+1. Reads the file context at each comment location
+2. Analyzes the Bugbot suggestion
+3. Either fixes valid bugs or dismisses invalid reports
+4. In auto-commit mode: commits, pushes, marks comments as resolved, and loops back
+5. In manual mode: reports changes for your review before committing
+
+The loop continues until all Bugbot comments are resolved or the maximum iteration limit is reached.

@@ -1,0 +1,34 @@
+---
+title: "Uninstall"
+description: "Remove the Bugbot Loop plugin from Claude Code"
+---
+
+If you need to remove Bugbot Loop from your Claude Code environment, you can uninstall it using the plugin commands.
+
+## Uninstall process
+
+<Steps>
+  <Step title="Uninstall the plugin">
+    Run the following command to uninstall the Bugbot Loop plugin:
+
+    ```bash
+    /plugin uninstall bugbot-loop@bugbot-loop
+    ```
+
+    This removes the plugin from your Claude Code installation.
+  </Step>
+
+  <Step title="Remove from marketplace">
+    Run this command to remove Bugbot Loop from your marketplace:
+
+    ```bash
+    /plugin marketplace remove bugbot-loop
+    ```
+
+    This removes the plugin from your available marketplace plugins.
+  </Step>
+</Steps>
+
+<Note>
+  After uninstalling, you won't have access to the `/bugbot-loop:run` command or any of the plugin's functionality. You can reinstall the plugin at any time by following the installation instructions.
+</Note>

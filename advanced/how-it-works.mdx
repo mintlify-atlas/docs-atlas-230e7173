@@ -1,0 +1,171 @@
+---
+title: "How it works"
+description: "Understanding Bugbot Loop's internal workflow"
+---
+
+Bugbot Loop uses the GitHub CLI (`gh`) with predefined GraphQL queries to automatically resolve Cursor Bugbot PR comments.
+
+## Overview
+
+The plugin finds unresolved comments left by Bugbot on your PR, addresses them by either fixing the bugs or dismissing invalid reports, and marks comments as resolved after pushing (in auto-commit mode).
+
+## Workflow phases
+
+Bugbot Loop operates in five distinct phases:
+
+<Steps>
+  <Step title="Phase 0: Setup">
+    The plugin first verifies you're on a PR branch by running:
+
+    ```bash
+    gh pr view --json number,title,headRefName,url
+    ```
+
+    If you're not on a PR branch, the plugin stops and informs you.
+
+    Next, if needed, the plugin runs `gh pr diff` to understand the changes in your PR.
+
+    ### Mode selection
+
+    You'll choose between two modes:
+
+    - **Auto-commit mode**: Commits, pushes, and loops automatically until all comments are resolved
+    - **Manual mode**: Fixes all current comments, then stops for you to review and commit manually
+
+    You can skip the prompt by using `--auto` or `--manual` flags.
+  </Step>
+
+  <Step title="Phase 1: Wait for Bugbot CI (auto-commit mode only)">
+    In auto-commit mode, the plugin polls for Bugbot CI completion:
+
+    ```bash
+    gh pr checks --json name,state --jq '.[] | select(.name == "Cursor Bugbot")'
+    ```
+
+    The plugin waits for the state to be `SUCCESS`, `FAILURE`, or `NEUTRAL`. If the state is `PENDING` or no result is returned, it waits 60 seconds:
+
+    ```bash
+    sleep 60
+    ```
+
+    After 25 retries (25 minutes), the plugin times out and informs you.
+
+    <Note>
+      Manual mode skips this phase entirely and proceeds directly to fetching comments.
+    </Note>
+  </Step>
+
+  <Step title="Phase 2: Fetch unresolved comments">
+    The plugin retrieves PR information:
+
+    ```bash
+    gh pr view --json number -q '.number'
+    gh repo view --json nameWithOwner -q '.nameWithOwner'
+    ```
+
+    Then it fetches unresolved Bugbot comments using this GraphQL query:
+
+    ```graphql
+    query {
+      repository(owner: "OWNER", name: "NAME") {
+        pullRequest(number: PR_NUMBER) {
+          reviewThreads(first: 100) {
+            nodes {
+              id
+              isResolved
+              comments(first: 1) {
+                nodes {
+                  id
+                  databaseId
+                  author {
+                    login
+                  }
+                  path
+                  line
+                  body
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    ```
+
+    The plugin filters results for:
+    - `isResolved == false`
+    - Author login is `cursor-bot` or `cursor[bot]`
+
+    For each comment, it extracts:
+    - `threadId` (the thread's `id`)
+    - `path` (file path)
+    - `line` (line number)
+    - `body` (comment text)
+
+    If no unresolved comments are found, the workflow completes.
+  </Step>
+
+  <Step title="Phase 3: Process each comment">
+    For each unresolved comment, the plugin:
+
+    1. Reads the file at the specified path and line to understand context
+    2. Analyzes the Bugbot suggestion
+    3. Takes action:
+       - **Fix**: Makes the suggested change if it's valid
+       - **Dismiss**: Notes why the suggestion is incorrect or not applicable
+
+    The plugin tracks processed comment IDs and their thread IDs to avoid reprocessing.
+
+    <Warning>
+      Threads are not resolved yet at this stage. Resolution happens after successful commit in auto-commit mode only.
+    </Warning>
+  </Step>
+
+  <Step title="Phase 4: Commit and continue">
+    ### Auto-commit mode
+
+    1. Commits all fixes with a descriptive message (no coauthor attribution)
+    2. Pushes commits: `git push`
+    3. After successful push, resolves all processed threads via GraphQL mutation:
+
+    ```graphql
+    mutation {
+      resolveReviewThread(input: { threadId: "THREAD_ID" }) {
+        thread {
+          id
+          isResolved
+        }
+      }
+    }
+    ```
+
+    4. Increments iteration counter
+    5. If iterations >= max-iterations, stops and reports status
+    6. Otherwise, loops back to Phase 1
+
+    ### Manual mode
+
+    1. Does not commit, push, or resolve threads
+    2. Reports to you:
+       - Files modified and changes made
+       - Comments that were dismissed (with reasons)
+       - Instructions to review changes, commit, push, and re-run `/bugbot-loop:run` after Bugbot runs again
+  </Step>
+</Steps>
+
+## Comment resolution process
+
+The plugin reads file context before making changes to ensure fixes are appropriate. If a fix introduces new issues, the next Bugbot run will catch them.
+
+In auto-commit mode, the loop continues until Bugbot is satisfied or the maximum iterations are reached (default: 10, configurable with `--max-iterations`).
+
+## GitHub CLI and GraphQL usage
+
+Bugbot Loop relies heavily on GitHub CLI commands and GraphQL queries:
+
+- **`gh pr view`**: Retrieves PR information and diffs
+- **`gh pr checks`**: Monitors Bugbot CI status
+- **`gh repo view`**: Gets repository details
+- **`gh api graphql`**: Executes GraphQL queries and mutations to fetch and resolve comment threads
+
+All GraphQL operations use the GitHub GraphQL API v4 to interact with PR review threads efficiently.

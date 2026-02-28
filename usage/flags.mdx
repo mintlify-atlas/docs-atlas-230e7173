@@ -1,0 +1,125 @@
+---
+title: "Flags"
+description: "Command-line flags and options"
+---
+
+## Available flags
+
+Bugbot Loop supports several command-line flags to customize its behavior.
+
+<ParamField path="--max-iterations" type="number" default="10">
+  Maximum number of loop iterations before stopping.
+
+  In auto-commit mode, this limits how many times the tool will commit, push, wait for Bugbot, and process new comments. This prevents infinite loops if Bugbot continues finding issues.
+
+  ### Example
+
+  ```bash
+  /bugbot-loop:run --max-iterations=5
+  ```
+
+  <Note>
+  If the max iteration limit is reached, the tool will stop and report the current status, even if unresolved comments remain.
+  </Note>
+</ParamField>
+
+<ParamField path="--auto" type="boolean">
+  Run in auto-commit mode without prompting.
+
+  Enables fully automated operation where the tool commits, pushes, waits for Bugbot CI, resolves threads, and loops until all comments are addressed or max iterations is reached.
+
+  ### Example
+
+  ```bash
+  /bugbot-loop:run --auto
+  ```
+
+  ### What happens
+
+  - Skips the mode selection prompt
+  - Automatically commits and pushes fixes
+  - Waits for Bugbot CI to complete (up to 25 minutes per iteration)
+  - Resolves comment threads after successful push
+  - Continues looping until done
+
+  <Warning>
+  This flag will automatically commit and push changes to your PR branch. Ensure you have the necessary git permissions enabled.
+  </Warning>
+</ParamField>
+
+<ParamField path="--manual" type="boolean">
+  Run in manual mode without prompting.
+
+  Fixes all current Bugbot comments and stops for user review. Does not commit, push, or resolve threads automatically.
+
+  ### Example
+
+  ```bash
+  /bugbot-loop:run --manual
+  ```
+
+  ### What happens
+
+  - Skips the mode selection prompt
+  - Fixes all current unresolved comments
+  - Reports changes to you
+  - Stops without committing or pushing
+  - You manually review, commit, push, and re-run the command
+
+  <Note>
+  In manual mode, you control the commit-push cycle. This gives you full oversight but requires running the command multiple times to resolve all issues.
+  </Note>
+</ParamField>
+
+## Combining flags
+
+You can combine multiple flags in a single command:
+
+<CodeGroup>
+
+```bash Auto mode with custom iterations
+/bugbot-loop:run --auto --max-iterations=3
+```
+
+```bash Manual mode with custom iterations
+/bugbot-loop:run --manual --max-iterations=7
+```
+
+</CodeGroup>
+
+<Warning>
+Do not use both `--auto` and `--manual` in the same command. If both are present, behavior is undefined.
+</Warning>
+
+## Default values
+
+When flags are omitted:
+
+- **No mode flag** (`--auto` or `--manual`): You'll be prompted to choose a mode
+- **No `--max-iterations`**: Defaults to 10 iterations
+
+## Examples
+
+### Basic usage with defaults
+
+```bash
+/bugbot-loop:run
+```
+
+Uses max-iterations=10 and prompts for mode selection.
+
+### Quick auto-commit run
+
+```bash
+/bugbot-loop:run --auto
+```
+
+Runs in auto-commit mode with default 10 iterations.
+
+### Careful manual review with low limit
+
+```bash
+/bugbot-loop:run --manual --max-iterations=1
+```
+
+Fixes current comments only, then stops for your review (effectively one pass).

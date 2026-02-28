@@ -1,0 +1,79 @@
+---
+title: "Command reference"
+description: "Complete reference for the /bugbot-loop:run command"
+---
+
+## Overview
+
+The `/bugbot-loop:run` command resolves Cursor Bugbot PR comments on your current branch. You must be on a PR branch with Bugbot comments to use this command.
+
+## Basic usage
+
+Run the command on a PR branch with Bugbot comments:
+
+```bash
+/bugbot-loop:run
+```
+
+This will prompt you to choose between auto-commit and manual mode, then process all unresolved Bugbot comments.
+
+## Command variations
+
+### Set max iterations
+
+Limit the number of loop iterations (default is 10):
+
+```bash
+/bugbot-loop:run --max-iterations=5
+```
+
+### Skip mode prompt
+
+Run directly in auto-commit mode without prompting:
+
+```bash
+/bugbot-loop:run --auto
+```
+
+Run directly in manual mode without prompting:
+
+```bash
+/bugbot-loop:run --manual
+```
+
+### Combine flags
+
+You can combine the max iterations flag with a mode flag:
+
+```bash
+/bugbot-loop:run --auto --max-iterations=3
+```
+
+## Prerequisites
+
+<Note>
+Before running this command, ensure you have the following permissions and tools configured.
+</Note>
+
+Required tools:
+- [GitHub CLI](https://cli.github.com) installed and authenticated
+
+Required permissions in Claude Code:
+- `gh api graphql`
+- `gh repo view`
+- `gh pr view`
+- `gh pr checks`
+- `sleep` shell command
+- Git commit and push permissions (only if using auto-commit mode)
+
+## How it works
+
+The command uses the GitHub CLI with predefined GraphQL queries to:
+
+1. Verify you're on a PR branch
+2. Fetch unresolved Bugbot comments
+3. Analyze and fix valid issues (or dismiss invalid ones)
+4. In auto-commit mode: commit, push, wait for Bugbot, and repeat
+5. In manual mode: make fixes and stop for your review
+
+The loop continues until all comments are resolved or the max iteration limit is reached.

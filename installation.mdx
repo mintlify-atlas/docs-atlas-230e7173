@@ -1,0 +1,65 @@
+---
+title: Installation
+description: Install the Bugbot Loop plugin in Claude Code
+---
+
+## Prerequisites
+
+Before installing Bugbot Loop, ensure you have:
+
+- **Claude Code** - The Bugbot Loop plugin runs inside Claude Code
+- **GitHub CLI** - Install from [cli.github.com](https://cli.github.com)
+- **GitHub CLI permissions** - Enable the following commands:
+  - `gh api graphql`
+  - `gh repo view`
+  - `gh pr view`
+  - `gh pr checks`
+- **Shell command permission** - Enable the `sleep` command
+- **Git permissions** - If using auto-commit mode, enable permissions for committing and pushing
+
+## Install the plugin
+
+<Steps>
+  <Step title="Add the marketplace repository">
+    In Claude Code, run the following command to add the Bugbot Loop marketplace:
+
+    ```bash
+    /plugin marketplace add ricardonunez-io/bugbot-loop
+    ```
+
+    This registers the plugin marketplace so Claude Code can find and install the plugin.
+  </Step>
+
+  <Step title="Install the plugin">
+    Install the Bugbot Loop plugin by running:
+
+    ```bash
+    /plugin install bugbot-loop@bugbot-loop
+    ```
+
+    The plugin is now installed and ready to use.
+  </Step>
+
+  <Step title="Verify installation">
+    You can verify the installation by checking if the `/bugbot-loop:run` command is available in Claude Code.
+  </Step>
+</Steps>
+
+<Note>
+  The plugin requires permissions for various GitHub CLI commands and git operations. Make sure to grant these permissions when prompted by Claude Code.
+</Note>
+
+## Uninstall
+
+If you need to remove the plugin, run:
+
+```bash
+/plugin uninstall bugbot-loop@bugbot-loop
+/plugin marketplace remove bugbot-loop
+```
+
+## Next steps
+
+<Card title="Quickstart" icon="rocket" href="/quickstart">
+  Learn how to use Bugbot Loop on your first PR
+</Card>

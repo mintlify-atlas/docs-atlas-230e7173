@@ -1,0 +1,104 @@
+---
+title: "Prerequisites"
+description: "Requirements for running Bugbot Loop"
+---
+
+Before using Bugbot Loop, you need to ensure you have the necessary tools and permissions configured.
+
+## Required tools
+
+### GitHub CLI
+
+Bugbot Loop requires the [GitHub CLI](https://cli.github.com) to be installed and authenticated.
+
+<Steps>
+  <Step title="Install GitHub CLI">
+    Visit [https://cli.github.com](https://cli.github.com) and follow the installation instructions for your operating system.
+
+    Alternatively, you can install using a package manager:
+
+    ```bash
+    # macOS
+    brew install gh
+
+    # Windows
+    winget install --id GitHub.cli
+
+    # Linux (Debian/Ubuntu)
+    sudo apt install gh
+    ```
+  </Step>
+
+  <Step title="Authenticate with GitHub">
+    After installation, authenticate with your GitHub account:
+
+    ```bash
+    gh auth login
+    ```
+
+    Follow the prompts to complete authentication.
+  </Step>
+
+  <Step title="Verify installation">
+    Confirm the GitHub CLI is working:
+
+    ```bash
+    gh --version
+    ```
+  </Step>
+</Steps>
+
+## Required permissions
+
+You must enable permissions for the following commands in Claude Code:
+
+### GitHub CLI commands
+
+<Warning>
+  When Claude Code prompts you to allow these commands, you must approve them for Bugbot Loop to function.
+</Warning>
+
+- **`gh api graphql`** - Executes GraphQL queries to fetch and resolve PR comment threads
+- **`gh repo view`** - Retrieves repository information (owner and name)
+- **`gh pr view`** - Gets PR details, diffs, and status
+- **`gh pr checks`** - Monitors Bugbot CI completion status
+
+### Shell commands
+
+- **`sleep`** - Required in auto-commit mode to wait between Bugbot CI polling attempts
+
+### Git operations
+
+<Note>
+  These permissions are only required if you use auto-commit mode.
+</Note>
+
+In auto-commit mode, you need permissions for:
+
+- **Committing changes** - Creates commits with bug fixes
+- **Pushing to remote** - Pushes commits to trigger Bugbot re-runs
+
+If you use manual mode, you don't need commit or push permissions since you'll handle those operations yourself.
+
+## Environment requirements
+
+### PR branch
+
+You must be on a PR branch when running Bugbot Loop. The plugin verifies this during Phase 0 and will stop if you're not on a PR branch.
+
+### Active PR
+
+The branch must have an active pull request on GitHub. Bugbot Loop uses `gh pr view` to retrieve PR details, which will fail if no PR exists for the current branch.
+
+### Bugbot CI enabled
+
+Your repository must have the Cursor Bugbot CI check configured. In auto-commit mode, the plugin waits for the "Cursor Bugbot" check to complete.
+
+## Permission troubleshooting
+
+If you encounter permission errors:
+
+1. **Check Claude Code permissions**: Review allowed commands in Claude Code settings
+2. **Verify GitHub CLI authentication**: Run `gh auth status` to confirm you're logged in
+3. **Test commands manually**: Try running the required `gh` commands in your terminal to identify issues
+4. **Repository access**: Ensure you have write access to the repository for commit and push operations

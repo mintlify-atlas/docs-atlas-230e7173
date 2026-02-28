@@ -1,0 +1,96 @@
+---
+title: "Modes"
+description: "Understanding auto-commit and manual modes"
+---
+
+## Overview
+
+Bugbot Loop operates in two distinct modes that control how it handles commits and iterations. You can select a mode interactively or specify it using command-line flags.
+
+<Tabs>
+  <Tab title="Auto-commit">
+    **Auto-commit mode** runs a fully automated loop that commits, pushes, waits for Bugbot, and repeats until all comments are resolved.
+
+    ### What it does
+
+    1. **Fixes current comments** - Addresses all unresolved Bugbot comments
+    2. **Commits changes** - Creates a commit describing what was fixed
+    3. **Pushes to remote** - Pushes commits to the PR branch
+    4. **Waits for Bugbot CI** - Polls the PR checks until Bugbot completes (up to 25 minutes)
+    5. **Resolves threads** - Marks processed comment threads as resolved via GraphQL
+    6. **Loops** - Repeats the process until no unresolved comments remain or max iterations is reached
+
+    ### When to use
+
+    Use auto-commit mode when:
+    - You trust the automated fixes
+    - You want a hands-off approach to resolving Bugbot comments
+    - You're comfortable with automatic commits to your PR
+    - You want to resolve all issues in one go without manual intervention
+
+    ### How to enable
+
+    ```bash
+    /bugbot-loop:run --auto
+    ```
+
+    Or select "Auto-commit" when prompted.
+
+    <Warning>
+    Auto-commit mode will automatically commit and push changes to your PR branch. Review your repository permissions to ensure git commit and push operations are allowed.
+    </Warning>
+  </Tab>
+
+  <Tab title="Manual">
+    **Manual mode** fixes all current Bugbot comments and then stops, allowing you to review changes before committing.
+
+    ### What it does
+
+    1. **Fixes current comments** - Addresses all unresolved Bugbot comments
+    2. **Reports changes** - Shows you which files were modified and which comments were dismissed
+    3. **Stops** - Does NOT commit, push, or resolve threads
+    4. **Waits for you** - Instructs you to review, commit, push, and re-run the command after Bugbot runs again
+
+    ### When to use
+
+    Use manual mode when:
+    - You want to review all changes before committing
+    - You prefer to control the commit message and timing
+    - You want to make additional changes alongside Bugbot fixes
+    - You're working on a sensitive codebase where changes need careful review
+
+    ### How to enable
+
+    ```bash
+    /bugbot-loop:run --manual
+    ```
+
+    Or select "Manual" when prompted.
+
+    ### Workflow
+
+    After running in manual mode:
+
+    1. Review the changes made by Bugbot Loop
+    2. Make any additional modifications if needed
+    3. Commit and push your changes
+    4. Wait for Bugbot CI to run on your new commit
+    5. Run `/bugbot-loop:run --manual` again to process the next batch of comments
+
+    <Note>
+    Manual mode requires you to handle the commit-push-wait cycle yourself. This gives you full control but requires more iterations to fully resolve all issues.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Choosing a mode
+
+If you don't specify `--auto` or `--manual`, the command will ask you which mode to use with a description of what each does.
+
+## Default behavior
+
+Both modes:
+- Read file context before making changes
+- Either fix valid Bugbot suggestions or dismiss invalid ones
+- Track which comments have been processed
+- Never add coauthor lines to commits

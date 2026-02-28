@@ -1,0 +1,184 @@
+---
+title: "Troubleshooting"
+description: "Common issues and solutions"
+---
+
+This guide covers common issues you might encounter when using Bugbot Loop and how to resolve them.
+
+## Common issues
+
+<AccordionGroup>
+  <Accordion title="Error: Not on a PR branch">
+    **Problem**: You receive an error message stating you're not on a PR branch.
+
+    **Cause**: Bugbot Loop requires you to be on a branch with an active pull request. The plugin runs this check during Phase 0:
+
+    ```bash
+    gh pr view --json number,title,headRefName,url
+    ```
+
+    **Solution**:
+
+    1. Check your current branch: `git branch --show-current`
+    2. Ensure you have an active PR for this branch on GitHub
+    3. If no PR exists, create one first: `gh pr create`
+    4. If you're on the wrong branch, switch to the correct PR branch: `git checkout <branch-name>`
+  </Accordion>
+
+  <Accordion title="GitHub CLI permission errors">
+    **Problem**: You encounter permission denied errors when running `gh` commands.
+
+    **Cause**: GitHub CLI commands are not authorized in Claude Code, or you're not authenticated with GitHub CLI.
+
+    **Solution**:
+
+    1. Verify GitHub CLI authentication:
+       ```bash
+       gh auth status
+       ```
+    2. If not authenticated, run:
+       ```bash
+       gh auth login
+       ```
+    3. In Claude Code, approve permissions for these commands when prompted:
+       - `gh api graphql`
+       - `gh repo view`
+       - `gh pr view`
+       - `gh pr checks`
+    4. Ensure you have repository access (read/write permissions)
+  </Accordion>
+
+  <Accordion title="Bugbot CI timeout (25 minute limit)">
+    **Problem**: The plugin stops after waiting 25 minutes for Bugbot CI to complete.
+
+    **Cause**: In auto-commit mode (Phase 1), the plugin polls for Bugbot CI completion every 60 seconds. After 25 retries (25 minutes), it times out.
+
+    **Solution**:
+
+    1. Check the PR on GitHub to see the Bugbot CI status
+    2. If Bugbot is still running, wait for it to complete and re-run `/bugbot-loop:run`
+    3. If Bugbot failed or is stuck, investigate the CI logs on GitHub
+    4. Consider using manual mode (`--manual`) to fix comments without waiting for CI:
+       ```
+       /bugbot-loop:run --manual
+       ```
+    5. If Bugbot consistently takes longer than 25 minutes, this may indicate performance issues in your repository or with the Bugbot service
+  </Accordion>
+
+  <Accordion title="Max iterations reached">
+    **Problem**: The plugin stops with a message that maximum iterations have been reached.
+
+    **Cause**: In auto-commit mode, the plugin loops until all comments are resolved or the maximum iteration limit is hit (default: 10).
+
+    **Solution**:
+
+    1. Review the PR to see if comments are still unresolved
+    2. Check if Bugbot is generating new comments on each iteration (indicating the fixes aren't working)
+    3. Increase the max iterations limit:
+       ```
+       /bugbot-loop:run --max-iterations=20
+       ```
+    4. Switch to manual mode to review and fix comments manually:
+       ```
+       /bugbot-loop:run --manual
+       ```
+    5. If iterations keep maxing out, there may be an issue with the fixes being applied—review recent commits to identify problems
+  </Accordion>
+
+  <Accordion title="Commit or push failures">
+    **Problem**: The plugin fails to commit changes or push to the remote repository.
+
+    **Cause**: Missing permissions for git operations, or git configuration issues.
+
+    **Solution**:
+
+    1. **Permission issues**: Approve commit and push permissions in Claude Code when prompted
+    2. **Git configuration**: Ensure git user name and email are configured:
+       ```bash
+       git config user.name
+       git config user.email
+       ```
+    3. **Remote issues**: Verify your branch is tracking a remote:
+       ```bash
+       git branch -vv
+       ```
+    4. **Authentication**: If push fails due to authentication, ensure your git credentials are configured correctly
+    5. **Use manual mode**: If auto-commit continues to fail, switch to manual mode and commit/push manually:
+       ```
+       /bugbot-loop:run --manual
+       ```
+  </Accordion>
+
+  <Accordion title="No unresolved comments found but Bugbot shows issues">
+    **Problem**: The plugin reports no unresolved comments, but you can see Bugbot comments on GitHub.
+
+    **Cause**: The GraphQL query filters for comments where `isResolved == false` and author is `cursor-bot` or `cursor[bot]`. Comments may already be marked as resolved, or the author name doesn't match.
+
+    **Solution**:
+
+    1. Refresh the PR page on GitHub to see current comment status
+    2. Check if comments are already marked as resolved (but not addressed)
+    3. Manually unresolve threads on GitHub if needed
+    4. Verify the bot's username in the comments—if it's different from `cursor-bot` or `cursor[bot]`, this may be a plugin limitation
+  </Accordion>
+
+  <Accordion title="Sleep command permission denied">
+    **Problem**: You receive a permission error for the `sleep` command.
+
+    **Cause**: In auto-commit mode (Phase 1), the plugin uses `sleep 60` to wait between Bugbot CI polling attempts. This command requires approval in Claude Code.
+
+    **Solution**:
+
+    1. Approve the `sleep` command permission when Claude Code prompts you
+    2. Alternatively, use manual mode to avoid the waiting phase entirely:
+       ```
+       /bugbot-loop:run --manual
+       ```
+  </Accordion>
+
+  <Accordion title="GraphQL query failures">
+    **Problem**: GraphQL queries fail with authentication or permission errors.
+
+    **Cause**: The `gh api graphql` command requires proper GitHub authentication and repository permissions.
+
+    **Solution**:
+
+    1. Verify GitHub CLI authentication: `gh auth status`
+    2. Test the GraphQL API manually:
+       ```bash
+       gh api graphql -f query='{ viewer { login } }'
+       ```
+    3. Ensure you have read access to the repository
+    4. Check if the repository is private and your token has appropriate scopes
+    5. Re-authenticate if needed: `gh auth refresh`
+  </Accordion>
+
+  <Accordion title="Plugin fixes create new Bugbot comments">
+    **Problem**: After the plugin applies fixes, Bugbot generates new comments on the next run.
+
+    **Cause**: The fixes may be incorrect, incomplete, or introduce new issues.
+
+    **Solution**:
+
+    1. Review the commits made by the plugin to understand what changes were applied
+    2. Check the new Bugbot comments to see what issues were introduced
+    3. Use manual mode to review fixes before committing:
+       ```
+       /bugbot-loop:run --manual
+       ```
+    4. Manually adjust the fixes if the plugin's changes are incorrect
+    5. If the plugin consistently makes poor fixes, consider fixing comments manually instead of using auto-commit mode
+  </Accordion>
+</AccordionGroup>
+
+## Getting help
+
+If you encounter issues not covered here:
+
+1. Check the [GitHub repository](https://github.com/ricardonunez-io/bugbot-loop) for known issues
+2. Review the plugin's workflow in the [How it works](/advanced/how-it-works) documentation
+3. Verify all [Prerequisites](/advanced/prerequisites) are met
+4. Open an issue on GitHub with:
+   - Error messages
+   - Steps to reproduce
+   - Your environment (OS, GitHub CLI version, Claude Code version)
